@@ -29,8 +29,12 @@ export const errorMiddleware = (err, req, res, next) => {
 
     // Mongoose Cast Error
     if (err.name === "CastError") {
-        err = new ErrorHandler(`Invalid ${err.path}`, 400);
-    }
+    err = new ErrorHandler(
+        `Invalid ${err.path}. Please provide a valid ID.`,
+        400
+    );
+}
+
 
     // Mongoose Validation Error
     let message = err.message;

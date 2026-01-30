@@ -7,6 +7,9 @@ import dbconnection from "./database/dbconnection.js";
 import {errorMiddleware} from "./middlewares/error.js";
 import messageRouter  from "./router/messageRoutes.js"
 import userRouter from "./router/userRoutes.js"
+import TimeLineRoutes from "./router/TimeLineRoutes.js"
+import  SoftwareRoutes from "./router/softwareApplicationRoutes.js";
+import SkillRoutes from "./router/skillsRoutes.js"
 const app = express();
 dotenv.config({path:"./config/config.env"})
 app.use(cors({
@@ -25,6 +28,9 @@ app.use(fileUpload({
 
 app.use("/api/v1/message", messageRouter)
 app.use("/api/v1/user", userRouter)
+ app.use("/api/v1/timeline", TimeLineRoutes);
+app.use("/api/v1/softwareappliaction", SoftwareRoutes)
+app.use("/api/v1/skill", SkillRoutes) 
 dbconnection()
 app.use(errorMiddleware)
 

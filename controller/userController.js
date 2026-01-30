@@ -4,6 +4,9 @@ import { User } from "../Models/UserSchema.js";
 import { v2 as cloudinary } from "cloudinary";
 import { generateToken } from "../Utils/jwtToken.js";
 import { catchAsyncErrors } from "../middlewares/catchAsyncError.js";
+import crypto from "crypto"
+import sendEmail from "../Utils/sendEmail.js";
+
 
 
 
@@ -197,5 +200,154 @@ export const UpdateProfile = catchAsyncErrors(async (req, res, next) => {
         success: true,
         message: "Profile updated successfully",
         user: updatedUser
+    });
+});
+
+
+//  Update Password
+export const updatePassword = catchAsyncErrors(async (req, res, next) => {
+    const { currentPassword, newPassword, confirmNewPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+        return next(new ErrorHandler("Please fill all fields", 400));
+    }
+
+    const user = await User.findById(req.user.id).select("+password");
+
+    const isPasswordMatched = await user.comparePassword(currentPassword);
+    if (!isPasswordMatched) {
+        return next(new ErrorHandler("Incorrect current password", 400));
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        return next(
+            new ErrorHandler("New password and confirm password do not match", 400)
+        );
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Password updated successfully",
+    });
+});
+
+// GET USER FOR PORTFOLIO
+export const getUserForPortfolio = catchAsyncErrors(async (req, res, next) => {
+    const id = "6964865f70859f441333e8ea";
+
+    
+    const user = await User.findById(id);
+
+    res.status(200).json({
+        success: true,
+        user,
+    });
+});
+
+
+// FORGOT PASSWORD
+export const forgotPassword = catchAsyncErrors(async (req, res, next) => {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+        return next(new ErrorHandler("User not found", 404));
+    }
+
+    // Generate reset token
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    // Reset password URL
+    const resetPasswordUrl = `${process.env.DASHBOARD_URL || "http://localhost:3000"}/password/reset/${resetToken}`;
+
+    const message = `You requested a password reset.
+
+Click on the link below to reset your password:
+${resetPasswordUrl}
+
+If you did not request this, please ignore this email.`;
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: "Password Recovery",
+            message,
+        });
+
+        res.status(200).json({
+            success: true,
+             message: `Password reset email sent to ${user.email}`
+        });
+
+    } catch (error) {
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save({ validateBeforeSave: false });
+
+        return next(new ErrorHandler("Email could not be sent", 500));
+    }
+});
+
+
+// reset Password
+// Wrapper to handle async errors automatically
+export const resetPassword = catchAsyncErrors(async (req, res, next) => {
+
+    // Get reset token from URL params  -> /password/reset/:token
+    const { token } = req.params;
+
+    // Hash the token using the same algorithm used during forgot password
+    const resetPasswordToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+    // Find the user with:
+    // 1. Matching reset token
+    // 2. Token that has not expired
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    // If no user is found, token is invalid or expired
+    if (!user) {
+        return next(
+            new ErrorHandler(
+                "Reset password token is invalid or has expired",
+                400
+            )
+        );
+    }
+
+    // Check if password and confirm password match
+    if (req.body.password !== req.body.confirmPassword) {
+        return next(
+            new ErrorHandler(
+                "Password and confirm password do not match",
+                400
+            )
+        );
+    }
+
+    // Set the new password
+    user.password = req.body.password;
+
+    // Clear reset token fields (token is one-time use)
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    // Save the user (password hashing middleware will run)
+    await user.save();
+
+    // Send success response
+    res.status(200).json({
+        success: true,
+        message: "Password reset successfully. Please login again."
     });
 });
