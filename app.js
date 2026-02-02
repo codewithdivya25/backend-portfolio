@@ -10,6 +10,7 @@ import userRouter from "./router/userRoutes.js"
 import TimeLineRoutes from "./router/TimeLineRoutes.js"
 import  SoftwareRoutes from "./router/softwareApplicationRoutes.js";
 import SkillRoutes from "./router/skillsRoutes.js"
+import ProjectRoutes from "./router/ProjectRoutes.js"
 const app = express();
 dotenv.config({path:"./config/config.env"})
 app.use(cors({
@@ -31,6 +32,7 @@ app.use("/api/v1/user", userRouter)
  app.use("/api/v1/timeline", TimeLineRoutes);
 app.use("/api/v1/softwareappliaction", SoftwareRoutes)
 app.use("/api/v1/skill", SkillRoutes) 
+app.use("/api/v1/project", ProjectRoutes) 
 dbconnection()
 app.use(errorMiddleware)
 
