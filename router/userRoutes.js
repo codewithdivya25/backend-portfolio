@@ -6,7 +6,7 @@ const router = express.Router();
 
 // POST /api/message/send
 router.post("/register", register);
-router.post("/Login", login);
+router.post("/login", login);
 router.get("/logout",  isAuthenticated,logout)
 router.get("/me", isAuthenticated, getUser)
 router.put("/update/me", isAuthenticated,UpdateProfile)

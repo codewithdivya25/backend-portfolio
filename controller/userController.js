@@ -11,48 +11,25 @@ import sendEmail from "../Utils/sendEmail.js";
 
 
 export const register = catchAsyncErrors(async (req, res, next) => {
+    console.log("BODY 👉", req.body);
+    console.log("FILES 👉", req.files);
 
-    // ✅ Files check
     if (!req.files || Object.keys(req.files).length === 0) {
         return next(new ErrorHandler("Avatar and Resume are required!", 400));
     }
 
     const { avatar, resume } = req.files;
 
-    // ✅ Upload Avatar
     const cloudinaryResponseForAvatar = await cloudinary.uploader.upload(
         avatar.tempFilePath,
         { folder: "AVATARS" }
     );
 
-    if (!cloudinaryResponseForAvatar || cloudinaryResponseForAvatar.error) {
-        return next(
-            new ErrorHandler(
-                cloudinaryResponseForAvatar?.error?.message || "Avatar upload failed",
-                500
-            )
-        );
-    }
-
-    // ✅ Upload Resume (PDF/DOC)
     const cloudinaryResponseForResume = await cloudinary.uploader.upload(
         resume.tempFilePath,
-        {
-            folder: "MY_RESUMES",
-            resource_type: "raw"
-        }
+        { folder: "MY_RESUMES", resource_type: "raw" }
     );
 
-    if (!cloudinaryResponseForResume || cloudinaryResponseForResume.error) {
-        return next(
-            new ErrorHandler(
-                cloudinaryResponseForResume?.error?.message || "Resume upload failed",
-                500
-            )
-        );
-    }
-
-    // ✅ Body data
     const {
         fullName,
         email,
@@ -65,17 +42,17 @@ export const register = catchAsyncErrors(async (req, res, next) => {
         instagramURL
     } = req.body;
 
-    // ✅ Create user
-    await User.create({
-        fullName,
-        email,
-        phone,
-        aboutme,
-        password,
-        portfolioURL,
-        githubURL,
-        linkedinURL,
-        instagramURL,
+    // ✅ Create user instance
+    const user = await User.create({
+    fullName: fullName.trim(),
+    email: email.trim(),
+    phone: phone.trim(),
+    aboutme: aboutme.trim(),
+    password: password.trim(),
+    portfolioURL: portfolioURL.trim(),
+    githubURL: githubURL?.trim(),
+    linkedinURL: linkedinURL?.trim(),
+    instagramURL: instagramURL?.trim(),
         avatar: {
             public_id: cloudinaryResponseForAvatar.public_id,
             url: cloudinaryResponseForAvatar.secure_url
@@ -85,7 +62,9 @@ export const register = catchAsyncErrors(async (req, res, next) => {
             url: cloudinaryResponseForResume.secure_url
         }
     });
-    generateToken(User, "registration successfully!", 201, res)
+
+    // ✅ Use instance to generate token
+    generateToken(user, "Registration successfully!", 201, res);
 });
 
 export const login = catchAsyncErrors(async (req, res, next) => {
@@ -111,9 +90,11 @@ export const login = catchAsyncErrors(async (req, res, next) => {
 
 export const logout = catchAsyncErrors(async (req, res, next) => {
     res.status(200).cookie("token", "", {
-        expires: new Date(Date.now()),
-        httpOnly: true,
 
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
 
     }).json({
         success: true,
@@ -126,7 +107,7 @@ export const getUser = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findById(req.user.id)
     res.status(200).json({
         success: true,
-        User,
+        user,
 
     })
 })
