@@ -1,3 +1,4 @@
+
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -46,7 +47,7 @@ app.use(
 app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/timeline", TimeLineRoutes);
-app.use("/api/v1/softwareappliaction", SoftwareRoutes);
+app.use("/api/v1/softwareapplication", SoftwareRoutes);
 app.use("/api/v1/skill", SkillRoutes);
 app.use("/api/v1/project", ProjectRoutes);
 

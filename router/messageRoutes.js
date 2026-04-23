@@ -1,11 +1,21 @@
 import express from "express";
-import {getAllmessges, sendMessage, deleteMessage } from "../controller/messageController.js";
+import {
+  getAllMessages,
+  sendMessage,
+  deleteMessage,
+} from "../controller/messageController.js";
+
 import { isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-// POST /api/message/send
+// Send Message
 router.post("/send", sendMessage);
-router.get("/getall", getAllmessges )
-router.delete("/delete/:id", isAuthenticated,  deleteMessage);
+
+// Get All Messages
+router.get("/getall", getAllMessages);
+
+// Delete Message
+router.delete("/delete/:id", isAuthenticated, deleteMessage);
+
 export default router;
