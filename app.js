@@ -1,4 +1,4 @@
-
+console.log("APP FILE RUNNING");
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -23,7 +23,7 @@ dotenv.config({ path: "./config/config.env" });
 // ✅ CORS FIX (MOST IMPORTANT)
 app.use(
   cors({
-    origin: "http://localhost:5173", 
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   })
 );
