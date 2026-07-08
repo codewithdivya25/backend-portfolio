@@ -120,4 +120,6 @@ userSchema.methods.getResetPasswordToken = function () {
 };
 
 // ================= EXPORT USER MODEL =================
-export const User = mongoose.model("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+export { User };
