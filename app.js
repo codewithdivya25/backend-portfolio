@@ -29,7 +29,7 @@ app.use(
       process.env.PORTFOLIO_URL,
       process.env.DASHBOARD_URL,
       process.env.FRONTEND_URL,
-    ],
+    ].filter(Boolean),
     credentials: true,
   })
 );
