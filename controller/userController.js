@@ -11,82 +11,138 @@ import sendEmail from "../Utils/sendEmail.js";
 
 
 export const register = catchAsyncErrors(async (req, res, next) => {
-    console.log("BODY 👉", req.body);
-    console.log("FILES 👉", req.files);
+  console.log("BODY 👉", req.body);
+  console.log("FILES 👉", req.files);
 
-    if (!req.files || Object.keys(req.files).length === 0) {
-        return next(new ErrorHandler("Avatar and Resume are required!", 400));
+  // Check files
+  if (!req.files || !req.files.avatar || !req.files.resume) {
+    return next(new ErrorHandler("Avatar and Resume are required!", 400));
+  }
+
+  const { avatar, resume } = req.files;
+
+  const {
+    fullName,
+    email,
+    phone,
+    aboutme,
+    password,
+    portfolioURL,
+    githubURL,
+    linkedinURL,
+    instagramURL,
+  } = req.body;
+
+  console.log({
+    fullName,
+    email,
+    phone,
+    aboutme,
+    password,
+    portfolioURL,
+    githubURL,
+    linkedinURL,
+    instagramURL,
+  });
+
+  // Validation
+  if (
+    !fullName ||
+    !email ||
+    !phone ||
+    !aboutme ||
+    !password ||
+    !portfolioURL
+  ) {
+    return next(new ErrorHandler("Please fill all required fields", 400));
+  }
+
+  // Check existing user
+  const existingUser = await User.findOne({ email: email.trim() });
+
+  if (existingUser) {
+    return next(new ErrorHandler("User already exists!", 400));
+  }
+
+  // Upload Avatar
+  const avatarUpload = await cloudinary.uploader.upload(
+    avatar.tempFilePath,
+    {
+      folder: "AVATARS",
     }
+  );
 
-    const { avatar, resume } = req.files;
+  // Upload Resume
+  const resumeUpload = await cloudinary.uploader.upload(
+    resume.tempFilePath,
+    {
+      folder: "MY_RESUMES",
+      resource_type: "raw",
+    }
+  );
 
-    const cloudinaryResponseForAvatar = await cloudinary.uploader.upload(
-        avatar.tempFilePath,
-        { folder: "AVATARS" }
-    );
-
-    const cloudinaryResponseForResume = await cloudinary.uploader.upload(
-        resume.tempFilePath,
-        { folder: "MY_RESUMES", resource_type: "raw" }
-    );
-
-    const {
-        fullName,
-        email,
-        phone,
-        aboutme,
-        password,
-        portfolioURL,
-        githubURL,
-        linkedinURL,
-        instagramURL
-    } = req.body;
-
-    // ✅ Create user instance
-    const user = await User.create({
+  // Create User
+  const user = await User.create({
     fullName: fullName.trim(),
     email: email.trim(),
     phone: phone.trim(),
     aboutme: aboutme.trim(),
     password: password.trim(),
     portfolioURL: portfolioURL.trim(),
-    githubURL: githubURL?.trim(),
-    linkedinURL: linkedinURL?.trim(),
-    instagramURL: instagramURL?.trim(),
-        avatar: {
-            public_id: cloudinaryResponseForAvatar.public_id,
-            url: cloudinaryResponseForAvatar.secure_url
-        },
-        resume: {
-            public_id: cloudinaryResponseForResume.public_id,
-            url: cloudinaryResponseForResume.secure_url
-        }
-    });
+    githubURL: githubURL?.trim() || "",
+    linkedinURL: linkedinURL?.trim() || "",
+    instagramURL: instagramURL?.trim() || "",
 
-    // ✅ Use instance to generate token
-    generateToken(user, "Registration successfully!", 201, res);
+    avatar: {
+      public_id: avatarUpload.public_id,
+      url: avatarUpload.secure_url,
+    },
+
+    resume: {
+      public_id: resumeUpload.public_id,
+      url: resumeUpload.secure_url,
+    },
+  });
+
+  console.log("✅ User Created:", user);
+  
+
+  generateToken(user, "Registration Successful!", 201, res);
 });
 
+
 export const login = catchAsyncErrors(async (req, res, next) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return next(new ErrorHandler("Email and Password Are Required!"))
-    }
-    const user = await User.findOne({ email }).select("+password")
-    if (!user) {
-        return next(new ErrorHandler("Inavalid Email or Passowrd!"))
+  console.log("BODY:", req.body);
 
+  const { email, password } = req.body;
 
-    }
-    const isPasswordMatched = await user.comparePassword(password);
-    if (!isPasswordMatched) {
-        return next(new ErrorHandler("Inavalid Email or Passowrd!"))
+  if (!email || !password) {
+    return next(new ErrorHandler("Email and Password Are Required!", 400));
+  }
 
+  const user = await User.findOne({ email }).select("+password");
 
-    }
-    generateToken(user, "Login Sucessfully!", 200, res)
+  console.log("USER:", user);
 
-})
+  if (!user) {
+    return next(new ErrorHandler("Invalid Email or Password!", 401));
+  }
+
+  console.log("Entered Password:", password);
+  console.log("DB Password:", user.password);
+
+  const isPasswordMatched = await user.comparePassword(password);
+
+  console.log("PASSWORD MATCH:", isPasswordMatched);
+
+  if (!isPasswordMatched) {
+    return next(new ErrorHandler("Invalid Email or Password!", 401));
+  }
+
+  console.log("Generating Token...");
+
+  generateToken(user, "Login Successfully!", 200, res);
+});
 
 export const logout = catchAsyncErrors(async (req, res, next) => {
     res.status(200).cookie("token", "", {
@@ -331,3 +387,4 @@ export const resetPassword = catchAsyncErrors(async (req, res, next) => {
         message: "Password reset successfully. Please login again."
     });
 });
+
