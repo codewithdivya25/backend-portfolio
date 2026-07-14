@@ -23,16 +23,23 @@ dotenv.config({ path: "./config/config.env" });
 // ✅ CORS FIX (MOST IMPORTANT)
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      process.env.PORTFOLIO_URL,
-      process.env.DASHBOARD_URL,
-      process.env.FRONTEND_URL,
-    ].filter(Boolean),
+    origin: "https://dashboard-frontend-59sr.vercel.app",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.use((req, res, next) => {
+  console.log(
+    "METHOD:",
+    req.method,
+    "URL:",
+    req.originalUrl,
+    "ORIGIN:",
+    req.headers.origin
+  );
+  next();
+});
 
 // ✅ BODY PARSER
 app.use(express.json());
