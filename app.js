@@ -18,17 +18,17 @@ import ProjectRoutes from "./router/ProjectRoutes.js";
 const app = express();
 
 // ENV CONFIG
-dotenv.config({ path: "./config/config.env" });
+dotenv.config();
 
 // ✅ CORS FIX (MOST IMPORTANT)
 app.use(
   cors({
     origin: "https://dashboard-frontend-59sr.vercel.app",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.options("*", cors());
 app.use((req, res, next) => {
   console.log(
     "METHOD:",
