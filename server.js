@@ -1,8 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config({ path: "./config/config.env" });
+
 import app from "./app.js";
 import cloudinary from "cloudinary";
-// import dbconnection from "./database/dbconnection.js";
+import dbconnection from "./database/dbconnection.js";
 
-// dbconnection();
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,5 +13,5 @@ cloudinary.v2.config({
 });
 
 app.listen(process.env.PORT, () => {
-  console.log(`server listing at port ${process.env.PORT}`);
+  console.log(`Server running on port ${process.env.PORT}`);
 });

@@ -1,6 +1,7 @@
 console.log("APP FILE RUNNING");
 import express from "express";
 import dotenv from "dotenv";
+
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import fileUpload from "express-fileupload";
@@ -18,7 +19,8 @@ import ProjectRoutes from "./router/ProjectRoutes.js";
 const app = express();
 
 // ENV CONFIG
-dotenv.config();
+dotenv.config({path: "./config/config.env"});
+dbconnection()
 
 // ✅ CORS FIX (MOST IMPORTANT)
 app.use(
@@ -65,7 +67,7 @@ app.use("/api/v1/skill", SkillRoutes);
 app.use("/api/v1/project", ProjectRoutes);
 
 // ✅ DATABASE
-dbconnection();
+
 
 // ✅ ERROR MIDDLEWARE
 app.use(errorMiddleware);

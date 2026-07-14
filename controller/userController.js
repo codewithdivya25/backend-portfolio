@@ -120,7 +120,9 @@ export const login = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Email and Password Are Required!", 400));
   }
 
-  const user = await User.findOne({ email }).select("+password");
+  const user = await User.findOne({
+  email: email.trim().toLowerCase()
+}).select("+password");
 
   console.log("USER:", user);
 
