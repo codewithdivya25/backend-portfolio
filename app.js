@@ -23,25 +23,25 @@ dotenv.config({path: "./config/config.env"});
 dbconnection()
 
 // ✅ CORS FIX (MOST IMPORTANT)
+const allowedOrigins = [
+  "https://dashboard-frontend-59sr.vercel.app",
+  "https://divya-portfolio-orpin.vercel.app", 
+  "http://localhost:5173",
+  "http://localhost:5174",
+];
+
 app.use(
   cors({
-    origin: "https://dashboard-frontend-59sr.vercel.app",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
-
-app.options("*", cors());
-app.use((req, res, next) => {
-  console.log(
-    "METHOD:",
-    req.method,
-    "URL:",
-    req.originalUrl,
-    "ORIGIN:",
-    req.headers.origin
-  );
-  next();
-});
 
 // ✅ BODY PARSER
 app.use(express.json());
