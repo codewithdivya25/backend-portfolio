@@ -25,7 +25,7 @@ dbconnection()
 // ✅ CORS FIX (MOST IMPORTANT)
 const allowedOrigins = [
   "https://dashboard-frontend-59sr.vercel.app",
-  "https://divya-portfolio-orpin.vercel.app", 
+  "https://codewithdivya25-divya-portfolio.vercel.app/", 
   "http://localhost:5173",
   "http://localhost:5174",
 ];
