@@ -25,7 +25,7 @@ dbconnection()
 // ✅ CORS FIX (MOST IMPORTANT)
 const allowedOrigins = [
   "https://dashboard-frontend-59sr.vercel.app",
-  "https://codewithdivya25-divya-portfolio.vercel.app/", 
+  "https://codewithdivya25-divya-portfolio.vercel.app", 
   "http://localhost:5173",
   "http://localhost:5174",
 ];
@@ -34,10 +34,10 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(null, true);
       }
+      console.log("Blocked Origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
